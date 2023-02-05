@@ -12,15 +12,22 @@
             <hr/>
             <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
             <div class="row g-3">
+                <div id="error-col" class="col-12" hidden>
+                    <div id="client-error-list">
+                        <ul id="error-ul" class="mb-0">
+
+                        </ul>
+                    </div>
+                </div>
                 <div class="col-12">
                     <label class="form-label" asp-for="Input.FullName">Full Name</label>
-                    <input type="Text" asp-for="Input.FullName" class="form-control" required/>
+                    <input type="Text" id="fullname-input" asp-for="Input.FullName" class="form-control" required/>
                     <span asp-validation-for="Input.FullName" class="text-danger"></span>
                 </div>
 
                 <div class="col-12">
                     <label class="form-label" asp-for="Input.CreditCardNumber">Credit Card</label>
-                    <input type="Text" asp-for="Input.CreditCardNumber" class="form-control" required/>
+                    <input type="Text" id="creditcard-input" asp-for="Input.CreditCardNumber" class="form-control" required/>
                     <span asp-validation-for="Input.CreditCardNumber" class="text-danger"></span>
                 </div>
 
@@ -35,19 +42,19 @@
 
                 <div class="col-12">
                     <label class="form-label" asp-for="Input.MobileNumber">Mobile No</label>
-                    <input type="Text" asp-for="Input.MobileNumber" class="form-control" required/>
+                    <input type="Text" id="mobile-input" asp-for="Input.MobileNumber" class="form-control" required/>
                     <span asp-validation-for="Input.MobileNumber" class="text-danger"></span>
                 </div>
 
                 <div class="col-12">
                     <label class="form-label" asp-for="Input.DeliveryAddress">Delivery Address</label>
-                    <input type="Text" asp-for="Input.DeliveryAddress" class="form-control" required/>
+                    <input type="Text" id="address-input" asp-for="Input.DeliveryAddress" class="form-control" required/>
                     <span asp-validation-for="Input.DeliveryAddress" class="text-danger"></span>
                 </div>
 
                 <div class="col-12">
                     <label class="form-label" asp-for="Input.Email">Email Address</label>
-                    <input type="Text" asp-for="Input.Email" class="form-control" required/>
+                    <input type="Text" id="email-input" asp-for="Input.Email" class="form-control" required/>
                     <span asp-validation-for="Input.Email" class="text-danger"></span>
                 </div>
 
@@ -61,16 +68,13 @@
 
                 <div class="col-12">
                     <label class="form-label" asp-for="Input.ConfirmPassword">Confirm Password</label>
-                    <input type="Text" asp-for="Input.ConfirmPassword" class="form-control" required/>
+                    <input type="Text" id="confirm-input" asp-for="Input.ConfirmPassword" class="form-control" required/>
                     <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
                 </div>
 
                 <div class="col-12">
                     <label class="form-label">Photo</label>
                     <input type="file" class="form-control"/>
-                    @*
-                                        <span asp-validation-for="" class="text-danger"></span>
-                                        *@
                 </div>
 
                 <div class="col-12">
@@ -124,7 +128,7 @@
     <partial name="_ValidationScriptsPartial"/>
     <script src="~/lib/pswmeter-master/pswmeter.js"></script>
     <script src="~/js/register.js"></script>
-    
+
     <script>
         
 

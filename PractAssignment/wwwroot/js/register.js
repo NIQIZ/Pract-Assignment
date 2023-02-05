@@ -1,71 +1,107 @@
-function validateFullName(fullName) {
-    // Regular expression to match only alphabets and spaces
-    let regex = /^[a-zA-Z\s]+$/;
+function validateFullName() {
+    var fullname = document.getElementById("fullname-input").value;
+    var regex = /^[a-zA-Z ]+$/;
 
-    // Check if fullName is empty or doesn't match the regular expression
-    if (fullName === '' || !regex.test(fullName)) {
-        return false;
-    }
-    return true;
+    return regex.test(fullname);
 }
 
-function validateMastercard(cardNumber) {
-    // Regular expression to match a Mastercard number format
-    let regex = /^(?:5[1-5][0-9]{2}|222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}$/;
-
-    // Check if cardNumber is empty or doesn't match the regular expression
-    if (cardNumber === '' || !regex.test(cardNumber)) {
-        return false;
-    }
-    return true;
+function validateCreditCard() {
+    var creditcard = document.getElementById("creditcard-input").value;
+    var regex = /^(?:4[0-9]{12}(?:[0-9]{3})?|[25][1-7][0-9]{14}|6(?:011|5[0-9][0-9])[0-9]{12}|3[47][0-9]{13}|3(?:0[0-5]|[68][0-9])[0-9]{11}|(?:2131|1800|35\d{3})\d{11})$/;
+    
+    return regex.test(creditcard);
 }
 
-function validateSingaporeMobile(number) {
-    // Regular expression to match a Singapore mobile number format
-    let regex = /^(\+65|65|0){0,2}[8,9]{1}[0-9]{7}$/;
-
-    // Check if number is empty or doesn't match the regular expression
-    if (number === '' || !regex.test(number)) {
-        return false;
-    }
-    return true;
+function validateMobileNumber() {
+    var mobilenum = document.getElementById("mobile-input").value;
+    var regex = /^[689][0-9]{7}$/;
+    
+    return regex.test(mobilenum);
 }
 
-function validateAddress(address) {
+function validateAddress() {
+    var address = document.getElementById("address-input").value;
+    var regex = /^[a-zA-Z0-9 #-]+$/;
 
-    // Regular expression to match only alphabets, numbers, and spaces
-    let regex = /^[a-zA-Z0-9\s]+$/;
-
-    // Check if text is empty or doesn't match the regular expression
-    if (address === '' || !regex.test(address)) {
-        return false;
-    }
-    return true;
+    return regex.test(address);
 }
 
-function validateEmail(email) {
-    // Regular expression to match a valid email address format
-    let regex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+function validateEmail() {
+    var email = document.getElementById("email-input").value;
+    var regex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
-    // Check if email is empty or doesn't match the regular expression
-    if (email === '' || !regex.test(email)) {
-        return false;
-    }
-    return true;
+    return regex.test(email);
 }
 
-let forms = document.querySelectorAll(".needs-validation");
+function validatePassword() {
+    var password = document.getElementById("password-input").value;
+    var regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#\$%\^&\*_])[a-zA-Z\d!@#\$%\^&\*_]{12,}$/;
 
-Array.prototype.slice.call( forms ).forEach( function (form) {
-    form.addEventListener("submit", function (event){
-        if (!form.checkValidity()) {
-            event.preventDefault();
-            event.stopPropagation();    
+    return regex.test(password)
+}
+
+function validateConfirmPassword(){
+    var password = document.getElementById("password-input").value;
+    var confirm = document.getElementById("confirm-input").value;
+    
+    return (password === confirm);
+}
+
+document.getElementById("registerForm").addEventListener("submit", function(event) {
+    const errorUl = document.getElementById("error-ul");
+    errorUl.innerHTML = "";
+    var form = document.getElementById("registerForm");
+    var canSubmit = true;
+    var errors = [];
+    
+    if (!form.checkValidity()){
+        errors.push("Please enter all required fields");
+    }
+    if (!validateFullName()){
+        errors.push("Please enter a valid full name");
+    }
+    if (!validateCreditCard()){
+        errors.push("Please enter a valid credit card");
+    }
+    
+    if (!validateMobileNumber()){
+        errors.push("Please enter a valid mobile number")
+    }
+    
+    if (!validateAddress()){
+        errors.push("Please enter a valid address");
+    }
+    
+    if (!validateEmail()){
+        errors.push("Please enter a valid email address");
+    }
+    
+    if (!validatePassword()){
+        errors.push("Please enter a valid password");
+    }
+    
+    if (!validateConfirmPassword()){
+        errors.push("Please ensure that the password matches");
+    }
+    
+    if (errors.length > 0){
+        canSubmit = false;
+    }
+    
+    if (!canSubmit){
+        event.preventDefault();
+        document.getElementById("error-col").hidden = false;
+        for (var i = 0; i < errors.length; i++){
+            let node = document.createElement("li");
+            let textnode = document.createTextNode(errors[i]);
+            node.appendChild(textnode);
+            node.classList.add("text-danger");
+            errorUl.appendChild(node);
         }
-        
-        form.classList.add("was-validated");
-    },false);
-});
+    }
+    
+    
+})
 
 const myPassMeter = passwordStrengthMeter({
     containerElement: '#pswmeter',
