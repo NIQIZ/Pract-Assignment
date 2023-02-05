@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
@@ -15,76 +16,38 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using PractAssignment.Models;
+using PractAssignment.Services;
+using PractAssignment.ViewModels;
 
 namespace PractAssignment.Areas.Identity.Pages.Account
 {
     public class LoginModel : PageModel
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<LoginModel> _logger;
+        private readonly GoogleCaptchaService _googleCaptchaService;
 
-        public LoginModel(SignInManager<ApplicationUser> signInManager, ILogger<LoginModel> logger)
+        public LoginModel(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, ILogger<LoginModel> logger, GoogleCaptchaService googleCaptchaService)
         {
             _signInManager = signInManager;
+            _userManager = userManager;
             _logger = logger;
+            _googleCaptchaService = googleCaptchaService;
         }
-
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
+        [TempData]
+        public string StatusMessage { get; set; }
+        
         [BindProperty]
-        public InputModel Input { get; set; }
+        public LoginView Input { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         public IList<AuthenticationScheme> ExternalLogins { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         public string ReturnUrl { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         [TempData]
         public string ErrorMessage { get; set; }
-
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        public class InputModel
-        {
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
-            [Required]
-            [EmailAddress]
-            public string Email { get; set; }
-
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
-            [Required]
-            [DataType(DataType.Password)]
-            public string Password { get; set; }
-
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
-            [Display(Name = "Remember me?")]
-            public bool RememberMe { get; set; }
-        }
-
+        
         public async Task OnGetAsync(string returnUrl = null)
         {
             if (!string.IsNullOrEmpty(ErrorMessage))
@@ -110,12 +73,45 @@ namespace PractAssignment.Areas.Identity.Pages.Account
 
             if (ModelState.IsValid)
             {
+                var captchaResult = await _googleCaptchaService.VerifyToken(Input.Token);
+                Console.WriteLine("Captcha Result: " + captchaResult);
+                if (!captchaResult)
+                {
+                    return Page();
+                }
+
+                var existingUser = await _userManager.FindByEmailAsync(Input.Email);
+
+                if (existingUser != null)
+                {
+                    var verificationResult =
+                        _userManager.PasswordHasher.VerifyHashedPassword(existingUser, existingUser.PasswordHash,
+                            Input.Password);
+                    if (((DateTime.Now - existingUser.LastChanged).TotalMinutes >= 3 ) && (verificationResult == PasswordVerificationResult.Success))
+                    {
+                        Response.Cookies.Append("ToResetExpired", "True", new CookieOptions
+                        {
+                            Expires = DateTime.Now.AddMinutes(2)
+                        });
+                        return RedirectToPage("SetPassword");
+                    }
+                }
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-                var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+                var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: true);
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User logged in.");
+                    
+                    //Create the security context
+                    var claims = new List<Claim> {
+                        new Claim("Testing", "Work Please"),
+                    };
+                    
+                    var claimsIdentity = new ClaimsIdentity(claims, "MyCookieAuth");
+                    ClaimsPrincipal claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+
+                    await HttpContext.SignInAsync("MyCookieAuth", claimsPrincipal);
                     return LocalRedirect(returnUrl);
                 }
                 if (result.RequiresTwoFactor)

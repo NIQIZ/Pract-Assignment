@@ -1,10 +1,78 @@
 ﻿@page
+@using Microsoft.AspNetCore.Identity
+@using PractAssignment.Models
 @model IndexModel
+@inject SignInManager<ApplicationUser> SignInManager
+
 @{
     ViewData["Title"] = "Home page";
 }
+@{
+    if (!SignInManager.IsSignedIn(User))
+    {
+        <div class="text-center">
+            <h1 class="display-4">Welcome</h1>
+            <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+        </div>
+    }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+    else
+    {
+        <div class="row g-3">
+            <div col-12>
+                <div class="d-flex justify-content-between">
+                    <h1>Profile</h1>
+                    <div>
+                        <a asp-area="Identity" asp-page="/Account/Manage/Index" class="btn btn-warning">Manage</a>
+                    </div>
+                </div>
+                
+            </div>
+            <div class="col-md-4 col-12">
+                <img class="img-fluid img-thumbnail" src="https://images.lifestyleasia.com/wp-content/uploads/sites/2/2022/05/18153355/best-chow-yun-fat-movies-better-tomorrow.png"/>
+            </div>
+
+            <div class="col-md-8 col-12">
+                <table class="table">
+                    <tbody>
+                    <tr>
+                        <th>Full Name</th>
+                        <td>Test</td>
+                    </tr>
+                    <tr>
+                        <th>Credit-Card Number</th>
+                        <td>Test</td>
+                    </tr>
+                    <tr>
+                        <th>Gender</th>
+                        <td>Test</td>
+                    </tr>
+                    <tr>
+                        <th>Mobile No</th>
+                        <td>Hello World</td>
+                    </tr>
+                    <tr>
+                        <th>Delivery Address</th>
+                        <td>Hello World</td>
+                    </tr>
+                    <tr>
+                        <th>Email Address</th>
+                        <td>Hello World</td>
+                    </tr>
+                    <tr>
+                        <th>About Me</th>
+                        <td>Hello World</td>
+                    </tr>
+                    <tr>
+                        <th>2FA</th>
+                        <td>Enabled</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    }
+}
+
+

@@ -15,9 +15,11 @@ public class AuthDbContext : IdentityDbContext<ApplicationUser>
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        string connectionString = _configuration.GetConnectionString("AuthConnectionString");
+        string? connectionString = _configuration.GetConnectionString("AuthConnectionString");
         optionsBuilder.UseSqlServer(connectionString);
     }
 
     private DbSet<ApplicationUser> User { get; set; }
+    private DbSet<AuditLog> AuditLogs { get; set; }
+
 }
