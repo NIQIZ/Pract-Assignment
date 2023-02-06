@@ -97,9 +97,9 @@ namespace PractAssignment.Areas.Identity.Pages.Account.Manage
             }
 
             string currentPassword = user.PasswordHash;
-            if (!await _passwordService.CheckPasswordHistory(Input.NewPassword, user.LastPassword1, user.LastPassword2))
+            if (!await _passwordService.CheckPasswordHistory(Input.NewPassword, currentPassword, user.LastPassword1, user.LastPassword2))
             {
-                ModelState.AddModelError(string.Empty, "Please use another password that is not your last 2 password");
+                ModelState.AddModelError(string.Empty, "Please use another password that is not your last 3 password");
                 return Page();
             }
             

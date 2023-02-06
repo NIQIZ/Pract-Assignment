@@ -8,20 +8,27 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using PractAssignment.Models;
+using PractAssignment.Services;
 
 namespace PractAssignment.Areas.Identity.Pages.Account
 {
     public class ResetPasswordModel : PageModel
     {
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly PasswordService _passwordService;
 
-        public ResetPasswordModel(UserManager<ApplicationUser> userManager)
+        public ResetPasswordModel(
+            UserManager<ApplicationUser> userManager,
+            PasswordService passwordService)
         {
             _userManager = userManager;
+            _passwordService = passwordService;
+
         }
 
         [BindProperty]
@@ -29,13 +36,13 @@ namespace PractAssignment.Areas.Identity.Pages.Account
 
         public class InputModel
         {
-            [Required]
-            [EmailAddress]
+            [DataType(DataType.EmailAddress)]
+            [RegularExpression(@"^(([^<>()\[\]\\.,;:\s@']+(\.[^<>()\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$", ErrorMessage = "Please Enter a valid email address")]
             public string Email { get; set; }
 
             [Required]
-            [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
             [DataType(DataType.Password)]
+            [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#\$%\^&\*_])[a-zA-Z\d!@#\$%\^&\*_]{12,}$", ErrorMessage = "Invalid Password")]
             public string Password { get; set; }
 
             [DataType(DataType.Password)]
@@ -78,13 +85,36 @@ namespace PractAssignment.Areas.Identity.Pages.Account
                 return RedirectToPage("./ResetPasswordConfirmation");
             }
 
-            var result = await _userManager.ResetPasswordAsync(user, Input.Code, Input.Password);
-            if (result.Succeeded)
+            if ((DateTime.Now - user.LastChanged).TotalMinutes <= 1 )
             {
-                return RedirectToPage("./ResetPasswordConfirmation");
+                ModelState.AddModelError(string.Empty, "Please wait for a while before changing a new password");
+                return Page();
             }
 
-            foreach (var error in result.Errors)
+            string currentPassword = user.PasswordHash;
+            if (!await _passwordService.CheckPasswordHistory(Input.Password, currentPassword, user.LastPassword1, user.LastPassword2))
+            {
+                ModelState.AddModelError(string.Empty, "Please use another password that is not your last 3 password");
+                return Page();
+            }
+            
+            
+            var resetResult = await _userManager.ResetPasswordAsync(user, Input.Code, Input.Password);
+            if (resetResult.Succeeded)
+            {
+                user.LastPassword2 = user.LastPassword1;
+                user.LastPassword1 = currentPassword;
+                user.LastChanged = DateTime.Now;
+                var updateResult = await _userManager.UpdateAsync(user);
+                if (updateResult.Succeeded)
+                {
+                    return RedirectToPage("./ResetPasswordConfirmation");
+                }
+                ModelState.AddModelError(string.Empty, "Reset Error. Please re-login and try again");
+                return Page();
+            }
+
+            foreach (var error in resetResult.Errors)
             {
                 ModelState.AddModelError(string.Empty, error.Description);
             }

@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Security.Claims;
+using System.Text;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
@@ -14,7 +16,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.WebUtilities;
 using PractAssignment.Models;
 using PractAssignment.Services;
 using PractAssignment.ViewModels;
@@ -27,13 +29,20 @@ namespace PractAssignment.Areas.Identity.Pages.Account
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<LoginModel> _logger;
         private readonly GoogleCaptchaService _googleCaptchaService;
+        private readonly IEmailSender _emailSender;
 
-        public LoginModel(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, ILogger<LoginModel> logger, GoogleCaptchaService googleCaptchaService)
+        public LoginModel(SignInManager<ApplicationUser> signInManager, 
+            UserManager<ApplicationUser> userManager, 
+            ILogger<LoginModel> logger, 
+            GoogleCaptchaService googleCaptchaService , 
+            IEmailSender emailSender)
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _logger = logger;
             _googleCaptchaService = googleCaptchaService;
+            _emailSender = emailSender;
+
         }
         [TempData]
         public string StatusMessage { get; set; }
@@ -89,11 +98,21 @@ namespace PractAssignment.Areas.Identity.Pages.Account
                             Input.Password);
                     if (((DateTime.Now - existingUser.LastChanged).TotalMinutes >= 3 ) && (verificationResult == PasswordVerificationResult.Success))
                     {
-                        Response.Cookies.Append("ToResetExpired", "True", new CookieOptions
-                        {
-                            Expires = DateTime.Now.AddMinutes(2)
-                        });
-                        return RedirectToPage("SetPassword");
+                        var code = await _userManager.GeneratePasswordResetTokenAsync(existingUser);
+                        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+                        var callbackUrl = Url.Page(
+                            "/Account/ResetPassword",
+                            pageHandler: null,
+                            values: new { area = "Identity", code },
+                            protocol: Request.Scheme);
+                        
+                        await _emailSender.SendEmailAsync(
+                            Input.Email,
+                            "Reset Password",
+                            $"Please reset your password by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+                        
+                        return RedirectToPage("./ExpiredPasswordConfirmation");
+
                     }
                 }
                 // This doesn't count login failures towards account lockout
