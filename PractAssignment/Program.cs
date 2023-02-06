@@ -25,7 +25,7 @@ builder.Services.Configure<GoogleCaptchaConfig>(builder.Configuration.GetSection
 builder.Services.AddDataProtection();
 
 builder.Services.Configure<CookieAuthenticationOptions>(IdentityConstants.ApplicationScheme, options => {
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(10);
     options.SlidingExpiration = false;
     options.LoginPath = "/Identity/Account/Login";
     options.AccessDeniedPath = "/Identity/Account/AccessDenied";

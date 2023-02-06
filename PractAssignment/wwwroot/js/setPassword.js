@@ -1,44 +1,35 @@
-document.getElementById("registerForm").addEventListener("submit", function(event) {
+document.getElementById("set-password-form").addEventListener("submit", function(event) {
     const errorUl = document.getElementById("error-ul");
     errorUl.innerHTML = "";
-    var form = document.getElementById("registerForm");
+    var form = document.getElementById("set-password-form");
     var canSubmit = true;
     var errors = [];
-    
+
     if (!form.checkValidity()){
         errors.push("Please enter all required fields");
     }
-    if (!validateFullName()){
-        errors.push("Please enter a valid full name");
-    }
-    if (!validateCreditCard()){
-        errors.push("Please enter a valid credit card");
-    }
-    
-    if (!validateMobileNumber()){
-        errors.push("Please enter a valid mobile number")
-    }
-    
-    if (!validateAddress()){
-        errors.push("Please enter a valid address");
-    }
-    
+
     if (!validateEmail()){
         errors.push("Please enter a valid email address");
     }
-    
-    if (!validatePassword()){
-        errors.push("Please enter a valid password");
+
+    if (!validateOldPassword()){
+        errors.push("Please enter a valid old password")
     }
     
+    if (!validatePassword()){
+        errors.push("Please enter a valid new password");
+    }
+
     if (!validateConfirmPassword()){
         errors.push("Please ensure that the password matches");
     }
     
+    
     if (errors.length > 0){
         canSubmit = false;
     }
-    
+
     if (!canSubmit){
         event.preventDefault();
         document.getElementById("error-col").hidden = false;
@@ -50,8 +41,8 @@ document.getElementById("registerForm").addEventListener("submit", function(even
             errorUl.appendChild(node);
         }
     }
-    
-    
+
+
 })
 
 const myPassMeter = passwordStrengthMeter({
