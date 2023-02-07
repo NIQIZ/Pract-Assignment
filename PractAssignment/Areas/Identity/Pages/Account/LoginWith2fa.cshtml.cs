@@ -4,7 +4,9 @@
 
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -116,6 +118,15 @@ namespace PractAssignment.Areas.Identity.Pages.Account
 
             if (result.Succeeded)
             {
+                var claims = new List<Claim> {
+                    new Claim("Testing", "Work Please"),
+                };
+                    
+                var claimsIdentity = new ClaimsIdentity(claims, "MyCookieAuth");
+                ClaimsPrincipal claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+
+                await HttpContext.SignInAsync("MyCookieAuth", claimsPrincipal);
+                
                 _logger.LogInformation("User with ID '{UserId}' logged in with 2fa.", user.Id);
                 await _auditLogService.Add2FactorLoginLog(user);
                 return LocalRedirect(returnUrl);

@@ -26,16 +26,18 @@ namespace PractAssignment.Areas.Identity.Pages.Account
             _signInManager = signInManager;
             _logger = logger;
             _auditLogService = auditLogService;
+            _userManager = userManager;
         }
 
         public async Task<IActionResult> OnPost(string returnUrl = null)
         {
             var user = await _userManager.GetUserAsync(User);
+            await _auditLogService.AddLogoutLog(user);
+            
             await _signInManager.SignOutAsync();
             await HttpContext.SignOutAsync();
             Response.Cookies.Delete("MyCookieAuth");
             _logger.LogInformation("User logged out.");
-            await _auditLogService.AddLogoutLog(user);
             if (returnUrl != null)
             {
                 return LocalRedirect(returnUrl);
