@@ -29,6 +29,9 @@ namespace PractAssignment.Areas.Identity.Pages.Account
         private readonly IEmailSender _emailSender;
         private readonly FileUploadService _fileUploadService;
         IDataProtector _protector;
+        private readonly AuditLogService _auditLogService;
+        private readonly GoogleCaptchaService _googleCaptchaService;
+
         public RegisterModel(
             UserManager<ApplicationUser> userManager,
             IUserStore<ApplicationUser> userStore,
@@ -37,7 +40,9 @@ namespace PractAssignment.Areas.Identity.Pages.Account
             IEmailSender emailSender,
             FileUploadService fileUploadService,
             IOptions<ProtectorSecret> optionsAccessor,
-            IDataProtectionProvider provider) 
+            IDataProtectionProvider provider,
+            AuditLogService auditLogService,
+            GoogleCaptchaService googleCaptchaService) 
         {
             _userManager = userManager;
             _userStore = userStore;
@@ -48,6 +53,9 @@ namespace PractAssignment.Areas.Identity.Pages.Account
             _emailSender = emailSender;
             Options = optionsAccessor.Value;
             _protector = provider.CreateProtector("FreshFarmMarket");
+            _auditLogService = auditLogService;
+            _googleCaptchaService = googleCaptchaService;
+
         }
         public ProtectorSecret Options { get; }
 
@@ -71,6 +79,12 @@ namespace PractAssignment.Areas.Identity.Pages.Account
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
             if (ModelState.IsValid)
             {
+                var captchaResult = await _googleCaptchaService.VerifyToken(Input.Token);
+                Console.WriteLine("Captcha Result: " + captchaResult);
+                if (!captchaResult)
+                {
+                    return Page();
+                }
                 var ifExists = await _userManager.FindByEmailAsync(Input.Email) != null;
 
                 if (ifExists)
@@ -112,6 +126,8 @@ namespace PractAssignment.Areas.Identity.Pages.Account
                     _logger.LogInformation("User created a new account with password.");
 
                     var userId = await _userManager.GetUserIdAsync(user);
+                    await _auditLogService.AddRegisterLog(await _userManager.FindByIdAsync(userId));
+
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
                     var callbackUrl = Url.Page(

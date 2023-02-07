@@ -1,5 +1,9 @@
 ﻿@page
+@using Microsoft.Extensions.Options
+@using Microsoft.AspNetCore.Mvc.TagHelpers
 @model RegisterModel
+@inject IOptions<GoogleCaptchaConfig> GoogleCaptchaConfig
+
 @{
     ViewData["Title"] = "Register";
 }
@@ -8,6 +12,8 @@
 <div class="row">
     <div class="col-md-4">
         <form enctype="multipart/form-data" id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+            <input type="hidden" id="LModel-token" asp-for="Input.Token"/>
+        
             <h2>Create a new account.</h2>
             <hr/>
             <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
@@ -60,28 +66,29 @@
 
                 <div class="col-12">
                     <label class="form-label" asp-for="Input.Password">Password</label>
-                    <input id="password-input" type="Text" asp-for="Input.Password" class="form-control password-input" required/>
-                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+                    <input id="password-input" type="password" asp-for="Input.Password" class="form-control password-input" required/>
                     <div id="pswmeter"></div>
                     <div id="pswmeter-message"></div>
+                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+
                 </div>
 
                 <div class="col-12">
                     <label class="form-label" asp-for="Input.ConfirmPassword">Confirm Password</label>
-                    <input type="Text" id="confirm-input" asp-for="Input.ConfirmPassword" class="form-control" required/>
+                    <input type="password" id="confirm-input" asp-for="Input.ConfirmPassword" class="form-control" required/>
                     <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
                 </div>
 
                 <div class="col-12">
                     <label class="form-label">Photo</label>
-                    <input class="form-control" asp-for="Input.Photo" type="file" id="file-input" />
+                    <input class="form-control" asp-for="Input.Photo" type="file" id="file-input"/>
                     <span asp-validation-for="Input.FileName" class="text-danger"></span>
 
                 </div>
 
                 <div class="col-12">
                     <label class="form-label" asp-for="Input.AboutMe">About Me</label>
-                    <textarea type="" asp-for="Input.AboutMe" class="form-control"> </textarea>
+                    <textarea type="" asp-for="Input.AboutMe" class="form-control" required> </textarea>
                     <span asp-validation-for="Input.AboutMe" class="text-danger"></span>
                 </div>
 
@@ -130,9 +137,24 @@
     <partial name="_ValidationScriptsPartial"/>
     <script src="~/lib/pswmeter-master/pswmeter.js"></script>
     <script src="~/js/register.js"></script>
+    <script src="https://www.google.com/recaptcha/api.js?render=@GoogleCaptchaConfig.Value.SiteKey"></script>
 
     <script>
+            function getToken() {
+                grecaptcha.ready(function() {
+                    grecaptcha.execute('@GoogleCaptchaConfig.Value.SiteKey', {
+                        action: 'submit'
+                    }).then(function(token) {
+                        // Add your logic to submit to your backend server here.
+                        console.log(token)
         
-
-    </script>
+                        document.getElementById("LModel-token").value = token;
+                    });
+                });
+            }
+            setInterval(getToken, 135000);
+            $(function() {
+                getToken();
+            })
+        </script>
 }

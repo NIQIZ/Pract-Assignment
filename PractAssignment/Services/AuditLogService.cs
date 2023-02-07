@@ -11,20 +11,41 @@ namespace PractAssignment.Services
             _context = context;
         }
 
-    
+        public async Task AddRegisterLog(ApplicationUser user)
+        {
+            AuditLog newLog = new AuditLog()
+            {
+                User = user,
+                Action = "Register",  // This is the action the the user executed
+                ActionTime = DateTime.Now // This is the time of the executed action
+            };
+            _context.AuditLogs.Add(newLog);  // Add the newly created object to the context
+            await _context.SaveChangesAsync();   // Save the newly created object in the context  
+        }
+        public async Task AddEmailConfirmationLog(ApplicationUser user)
+        {
+            AuditLog newLog = new AuditLog()
+            {
+                User = user,
+                Action = "Confirmed Email",  // This is the action the the user executed
+                ActionTime = DateTime.Now // This is the time of the executed action
+            };
+            _context.AuditLogs.Add(newLog);  // Add the newly created object to the context
+            await _context.SaveChangesAsync();   // Save the newly created object in the context  
+        }
+
         public async Task AddLoginLog(ApplicationUser user)
         {
             AuditLog newLog = new AuditLog()
             {
                 User = user,
-                Action = "Login",
-                ActionTime = DateTime.Now
+                Action = "Login",  // This is the action the the user executed
+                ActionTime = DateTime.Now // This is the time of the executed action
             };
-            _context.AuditLogs.Add(newLog);
-            await _context.SaveChangesAsync();          
-         
+            _context.AuditLogs.Add(newLog);  // Add the newly created object to the context
+            await _context.SaveChangesAsync();   // Save the newly created object in the context  
         }
-    
+        
         public async Task Add2FactorLoginLog(ApplicationUser user)
         {
             AuditLog newLog = new AuditLog()

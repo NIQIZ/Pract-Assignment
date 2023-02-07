@@ -1,8 +1,8 @@
 ﻿function validateFullName() {
-    var fullname = document.getElementById("fullname-input").value;
-    var regex = /^[a-zA-Z ]+$/;
+    var fullname = document.getElementById("fullname-input").value; // TAKE INPUT VALUE
+    var regex = /^[a-zA-Z ]+$/; //SET REGEX
 
-    return regex.test(fullname);
+    return regex.test(fullname); //TEST THE VALUE WITH THE REGEX
 }
 
 function validateCreditCard() {

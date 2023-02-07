@@ -33,6 +33,7 @@ public class EmailSender : IEmailSender
     {
         try
         {
+            // To send email to user
             MailMessage mailMessage = new MailMessage();
 
             SmtpClient smtpClient = new SmtpClient();

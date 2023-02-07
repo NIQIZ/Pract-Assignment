@@ -1,7 +1,7 @@
-document.getElementById("account").addEventListener("submit", function(event) {
+document.getElementById("forget-password-form").addEventListener("submit", function(event) {
     const errorUl = document.getElementById("error-ul");
     errorUl.innerHTML = "";
-    var form = document.getElementById("account");
+    var form = document.getElementById("forget-password-form");
     var canSubmit = true;
     var errors = [];
 
@@ -10,11 +10,7 @@ document.getElementById("account").addEventListener("submit", function(event) {
     }
 
     if (!validateEmail()){
-        errors.push("Please enter a valid email address");
-    }
-
-    if (!validatePassword()){
-        errors.push("Please enter a valid password");
+        errors.push("Please enter a valid email")
     }
 
     if (errors.length > 0){
@@ -32,4 +28,7 @@ document.getElementById("account").addEventListener("submit", function(event) {
             errorUl.appendChild(node);
         }
     }
+
+
 })
+

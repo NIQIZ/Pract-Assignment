@@ -33,7 +33,7 @@ builder.Services.Configure<EmailCredentials>(builder.Configuration.GetSection("E
 builder.Services.AddDataProtection();
 
 builder.Services.Configure<CookieAuthenticationOptions>(IdentityConstants.ApplicationScheme, options => {
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(10);
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(1);
     options.SlidingExpiration = false;
     options.LoginPath = "/Identity/Account/Login";
     options.AccessDeniedPath = "/Identity/Account/AccessDenied";
@@ -54,8 +54,8 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error");
-    app.UseStatusCodePagesWithReExecute("/Error/{0}");
+    app.UseExceptionHandler("/Error"); // Show error if exception not handled
+    app.UseStatusCodePagesWithReExecute("/Error/{0}"); // Show code error page (403, 404) if exception is handled with error code
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }

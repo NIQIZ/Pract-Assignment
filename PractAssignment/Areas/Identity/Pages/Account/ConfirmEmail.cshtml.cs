@@ -12,16 +12,18 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using PractAssignment.Models;
+using PractAssignment.Services;
 
 namespace PractAssignment.Areas.Identity.Pages.Account
 {
     public class ConfirmEmailModel : PageModel
     {
         private readonly UserManager<ApplicationUser> _userManager;
-
-        public ConfirmEmailModel(UserManager<ApplicationUser> userManager)
+        private readonly AuditLogService _auditLogService;
+        public ConfirmEmailModel(UserManager<ApplicationUser> userManager, AuditLogService auditLogService)
         {
             _userManager = userManager;
+            _auditLogService = auditLogService;
         }
 
         /// <summary>
@@ -45,6 +47,9 @@ namespace PractAssignment.Areas.Identity.Pages.Account
 
             code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
             var result = await _userManager.ConfirmEmailAsync(user, code);
+            
+            await _auditLogService.AddEmailConfirmationLog(user);
+            
             StatusMessage = result.Succeeded ? "Thank you for confirming your email." : "Error confirming your email.";
             return Page();
         }

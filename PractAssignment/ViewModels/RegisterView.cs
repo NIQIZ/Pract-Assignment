@@ -4,6 +4,8 @@ namespace PractAssignment.ViewModels;
 
 public class RegisterView
 {
+    public string? Token { get; set; }
+    
     [Required]
     [DataType(DataType.Text)]
     [RegularExpression(@"^[a-zA-Z\s]+$", ErrorMessage = "Invalid Full Name")]
@@ -52,6 +54,7 @@ public class RegisterView
     [FileExtensions(Extensions = "jpg", ErrorMessage = "Please select a file with the correct extension.")]
     public string? FileName => Photo?.FileName;
 
+    [Required]
     [DataType(DataType.MultilineText)]
     public string? AboutMe { get; set; }
 

@@ -43,8 +43,6 @@ document.getElementById("registerForm").addEventListener("submit", function(even
         canSubmit = false;
     }
     
-    console.log(errors);
-    
     if (!canSubmit){
         event.preventDefault();
         document.getElementById("error-col").hidden = false;
