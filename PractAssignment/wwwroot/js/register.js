@@ -26,6 +26,10 @@ document.getElementById("registerForm").addEventListener("submit", function(even
     if (!validateEmail()){
         errors.push("Please enter a valid email address");
     }
+
+    if (!validateFileExtension()){
+        errors.push("Please input a file with .jpg extension only");
+    }
     
     if (!validatePassword()){
         errors.push("Please enter a valid password");
@@ -38,6 +42,8 @@ document.getElementById("registerForm").addEventListener("submit", function(even
     if (errors.length > 0){
         canSubmit = false;
     }
+    
+    console.log(errors);
     
     if (!canSubmit){
         event.preventDefault();

@@ -20,6 +20,6 @@ public class AuthDbContext : IdentityDbContext<ApplicationUser>
     }
 
     private DbSet<ApplicationUser> User { get; set; }
-    private DbSet<AuditLog> AuditLogs { get; set; }
+    public DbSet<AuditLog> AuditLogs { get; set; }
 
 }

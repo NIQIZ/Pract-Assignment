@@ -53,3 +53,13 @@ function validateConfirmPassword(){
 
     return (password === confirm);
 }
+
+function validateFileExtension() {
+    var file = document.getElementById("file-input");
+    var allowedExtension = /(\.jpg)$/i;
+    if (!allowedExtension.exec(file.value)) {
+        return false;
+    } else {
+        return true;
+    }
+}

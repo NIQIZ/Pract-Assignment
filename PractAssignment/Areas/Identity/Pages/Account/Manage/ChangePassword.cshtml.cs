@@ -21,17 +21,19 @@ namespace PractAssignment.Areas.Identity.Pages.Account.Manage
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ILogger<ChangePasswordModel> _logger;
         private readonly PasswordService _passwordService;
-
+        private readonly AuditLogService _auditLogService;
         public ChangePasswordModel(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             ILogger<ChangePasswordModel> logger,
-            PasswordService passwordService)
+            PasswordService passwordService,
+            AuditLogService auditLogService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
             _passwordService = passwordService;
+            _auditLogService = auditLogService;
         }
 
         [BindProperty]
@@ -123,6 +125,7 @@ namespace PractAssignment.Areas.Identity.Pages.Account.Manage
             if (result.Succeeded)
             {
                 await _signInManager.RefreshSignInAsync(user);
+                await _auditLogService.AddChangePasswordLog(user);
                 _logger.LogInformation("User changed their password successfully.");
                 StatusMessage = "Your password has been changed.";
 

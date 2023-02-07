@@ -1,7 +1,9 @@
+using System.Configuration;
 using System.Net;
 using System.Net.Mail;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Options;
+using PractAssignment.Models;
 using SendGrid;
 using SendGrid.Helpers.Mail;
 
@@ -10,23 +12,20 @@ namespace PractAssignment.Services;
 public class EmailSender : IEmailSender
 {
     private readonly ILogger _logger;
-
-    public EmailSender(IOptions<AuthMessageSenderOptions> optionsAccessor,
-        ILogger<EmailSender> logger)
+    private readonly IConfiguration _config;
+    public EmailSender(
+        ILogger<EmailSender> logger,
+        IConfiguration config,
+        IOptions<EmailCredentials> optionsAccessor
+        )
     {
-        Options = optionsAccessor.Value;
         _logger = logger;
+        _config = config;
+        Options = optionsAccessor.Value;
     }
-
-    public AuthMessageSenderOptions Options { get; } //Set with Secret Manager.
-
+    public EmailCredentials Options { get; }
     public async Task SendEmailAsync(string toEmail, string subject, string message)
     {
-        if (string.IsNullOrEmpty(Options.SendGridKey))
-        {
-            throw new Exception("Null SendGridKey");
-        }
-
         await Execute(subject, message, toEmail);
     }
 
@@ -37,8 +36,8 @@ public class EmailSender : IEmailSender
             MailMessage mailMessage = new MailMessage();
 
             SmtpClient smtpClient = new SmtpClient();
-
-            mailMessage.From = new MailAddress("ffm-no-reply@outlook.com");
+        
+            mailMessage.From = new MailAddress(Options.Email);
             mailMessage.To.Add(toEmail);
             mailMessage.Subject = subject;
             mailMessage.IsBodyHtml = true;
@@ -49,7 +48,7 @@ public class EmailSender : IEmailSender
 
             smtpClient.EnableSsl = true;
             smtpClient.UseDefaultCredentials = false;
-            smtpClient.Credentials = new NetworkCredential("ffm-no-reply@outlook.com", "Freshfarmmarket2023");
+            smtpClient.Credentials = new NetworkCredential(Options.Email, Options.Password);
             smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network;
             smtpClient.Send(mailMessage);
 

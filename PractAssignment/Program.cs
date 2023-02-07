@@ -12,6 +12,8 @@ builder.Services.AddDbContext<AuthDbContext>(options => options.UseSqlServer(con
 
 builder.Services.AddScoped<GoogleCaptchaService>();
 builder.Services.AddScoped<PasswordService>();
+builder.Services.AddScoped<FileUploadService>();
+builder.Services.AddScoped<AuditLogService>();
 
 builder.Services.AddAuthentication("MyCookieAuth").AddCookie("MyCookieAuth", options =>
 {
@@ -26,6 +28,7 @@ builder.Services.AddTransient<IEmailSender, EmailSender>();
 builder.Services.Configure<AuthMessageSenderOptions>(builder.Configuration);
 
 builder.Services.Configure<GoogleCaptchaConfig>(builder.Configuration.GetSection("GoogleReCaptcha"));
+builder.Services.Configure<EmailCredentials>(builder.Configuration.GetSection("EmailCredentials"));
 
 builder.Services.AddDataProtection();
 

@@ -7,7 +7,7 @@
 
 <div class="row">
     <div class="col-md-4">
-        <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+        <form enctype="multipart/form-data" id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
             <h2>Create a new account.</h2>
             <hr/>
             <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
@@ -74,7 +74,9 @@
 
                 <div class="col-12">
                     <label class="form-label">Photo</label>
-                    <input type="file" class="form-control"/>
+                    <input class="form-control" asp-for="Input.Photo" type="file" id="file-input" />
+                    <span asp-validation-for="Input.FileName" class="text-danger"></span>
+
                 </div>
 
                 <div class="col-12">

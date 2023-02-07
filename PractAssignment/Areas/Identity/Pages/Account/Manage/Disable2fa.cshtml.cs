@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using PractAssignment.Models;
+using PractAssignment.Services;
 
 namespace PractAssignment.Areas.Identity.Pages.Account.Manage
 {
@@ -16,13 +17,15 @@ namespace PractAssignment.Areas.Identity.Pages.Account.Manage
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<Disable2faModel> _logger;
-
+        private readonly AuditLogService _auditLogService;
         public Disable2faModel(
             UserManager<ApplicationUser> userManager,
-            ILogger<Disable2faModel> logger)
+            ILogger<Disable2faModel> logger,
+            AuditLogService auditLogService)
         {
             _userManager = userManager;
             _logger = logger;
+            _auditLogService = auditLogService;
         }
 
         /// <summary>
@@ -62,6 +65,7 @@ namespace PractAssignment.Areas.Identity.Pages.Account.Manage
                 throw new InvalidOperationException($"Unexpected error occurred disabling 2FA.");
             }
 
+            await _auditLogService.AddDisable2FactorLog(user);
             _logger.LogInformation("User with ID '{UserId}' has disabled 2fa.", _userManager.GetUserId(User));
             StatusMessage = "2fa has been disabled. You can reenable 2fa when you setup an authenticator app";
             return RedirectToPage("./TwoFactorAuthentication");

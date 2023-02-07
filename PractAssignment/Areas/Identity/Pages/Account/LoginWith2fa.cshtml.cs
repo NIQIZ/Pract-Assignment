@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using PractAssignment.Models;
+using PractAssignment.Services;
 
 namespace PractAssignment.Areas.Identity.Pages.Account
 {
@@ -20,15 +21,17 @@ namespace PractAssignment.Areas.Identity.Pages.Account
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<LoginWith2faModel> _logger;
-
+        private readonly AuditLogService _auditLogService;
         public LoginWith2faModel(
             SignInManager<ApplicationUser> signInManager,
             UserManager<ApplicationUser> userManager,
-            ILogger<LoginWith2faModel> logger)
+            ILogger<LoginWith2faModel> logger,
+            AuditLogService auditLogService)
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _logger = logger;
+            _auditLogService = auditLogService;
         }
 
         /// <summary>
@@ -114,6 +117,7 @@ namespace PractAssignment.Areas.Identity.Pages.Account
             if (result.Succeeded)
             {
                 _logger.LogInformation("User with ID '{UserId}' logged in with 2fa.", user.Id);
+                await _auditLogService.Add2FactorLoginLog(user);
                 return LocalRedirect(returnUrl);
             }
             else if (result.IsLockedOut)
@@ -123,6 +127,7 @@ namespace PractAssignment.Areas.Identity.Pages.Account
             }
             else
             {
+                _auditLogService.AddInvalid2FactorInputLog(user);
                 _logger.LogWarning("Invalid authenticator code entered for user with ID '{UserId}'.", user.Id);
                 ModelState.AddModelError(string.Empty, "Invalid authenticator code.");
                 return Page();

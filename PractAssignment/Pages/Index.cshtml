@@ -2,8 +2,9 @@
 @using Microsoft.AspNetCore.Identity
 @using PractAssignment.Models
 @model IndexModel
-@inject SignInManager<ApplicationUser> SignInManager
 
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
 @{
     ViewData["Title"] = "Home page";
 }
@@ -18,6 +19,8 @@
 
     else
     {
+        ApplicationUser? user = await UserManager.GetUserAsync(User);
+
         <div class="row g-3">
             <div col-12>
                 <div class="d-flex justify-content-between">
@@ -29,7 +32,7 @@
                 
             </div>
             <div class="col-md-4 col-12">
-                <img class="img-fluid img-thumbnail" src="https://images.lifestyleasia.com/wp-content/uploads/sites/2/2022/05/18153355/best-chow-yun-fat-movies-better-tomorrow.png"/>
+                <img class="img-fluid img-thumbnail" src="data:image/png;base64,@Convert.ToBase64String(user.Photo)"/>
             </div>
 
             <div class="col-md-8 col-12">
@@ -37,35 +40,35 @@
                     <tbody>
                     <tr>
                         <th>Full Name</th>
-                        <td>Test</td>
+                        <td>@user.FullName</td>
                     </tr>
                     <tr>
                         <th>Credit-Card Number</th>
-                        <td>Test</td>
+                        <td>@Model.DecryptData(user.CreditCardNumber)</td>
                     </tr>
                     <tr>
                         <th>Gender</th>
-                        <td>Test</td>
+                        <td>@user.Gender</td>
                     </tr>
                     <tr>
                         <th>Mobile No</th>
-                        <td>Hello World</td>
+                        <td>@user.MobileNumber</td>
                     </tr>
                     <tr>
                         <th>Delivery Address</th>
-                        <td>Hello World</td>
+                        <td>@user.DeliveryAddress</td>
                     </tr>
                     <tr>
                         <th>Email Address</th>
-                        <td>Hello World</td>
+                        <td>@user.Email</td>
                     </tr>
                     <tr>
                         <th>About Me</th>
-                        <td>Hello World</td>
+                        <td>@user.AboutMe</td>
                     </tr>
                     <tr>
                         <th>2FA</th>
-                        <td>Enabled</td>
+                        <td>@user.TwoFactorEnabled</td>
                     </tr>
                     </tbody>
                 </table>

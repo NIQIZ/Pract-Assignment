@@ -2,23 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
+using System.Configuration;
 using System.Text;
 using System.Text.Encodings.Web;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using PractAssignment.Models;
+using PractAssignment.Services;
 using PractAssignment.ViewModels;
 
 namespace PractAssignment.Areas.Identity.Pages.Account
@@ -31,21 +27,29 @@ namespace PractAssignment.Areas.Identity.Pages.Account
         private readonly IUserEmailStore<ApplicationUser> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
-
+        private readonly FileUploadService _fileUploadService;
+        IDataProtector _protector;
         public RegisterModel(
             UserManager<ApplicationUser> userManager,
             IUserStore<ApplicationUser> userStore,
             SignInManager<ApplicationUser> signInManager,
             ILogger<RegisterModel> logger,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            FileUploadService fileUploadService,
+            IOptions<ProtectorSecret> optionsAccessor,
+            IDataProtectionProvider provider) 
         {
             _userManager = userManager;
             _userStore = userStore;
             _emailStore = GetEmailStore();
             _signInManager = signInManager;
             _logger = logger;
+            _fileUploadService = fileUploadService;
             _emailSender = emailSender;
+            Options = optionsAccessor.Value;
+            _protector = provider.CreateProtector("FreshFarmMarket");
         }
+        public ProtectorSecret Options { get; }
 
         [BindProperty]
         public RegisterView Input { get; set; }
@@ -78,14 +82,29 @@ namespace PractAssignment.Areas.Identity.Pages.Account
                 var user = CreateUser();
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
+                
                 user.FullName = Input.FullName;
                 user.MobileNumber = Input.MobileNumber;
-                user.CreditCardNumber = Input.CreditCardNumber;
-                user.DeliveryAddress = Input.DeliveryAddress;
+                user.CreditCardNumber = _protector.Protect(Input.CreditCardNumber);
+                user.DeliveryAddress = System.Web.HttpUtility.HtmlEncode(Input.DeliveryAddress);
                 user.Gender = Input.Gender;
                 user.PhoneNumber = Input.MobileNumber;
-                user.AboutMe = Input.AboutMe;
+                user.AboutMe = System.Web.HttpUtility.HtmlEncode(Input.AboutMe);
                 user.LastChanged = DateTime.Now;
+                using (var memoryStream = new MemoryStream())
+                {
+                    await Input.Photo.CopyToAsync(memoryStream);
+
+                    // Upload the file if less than 2 MB
+                    if (memoryStream.Length < 2097152)
+                    {
+                        user.Photo = memoryStream.ToArray();
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("File", "The file is too large.");
+                    }
+                }
                 var result = await _userManager.CreateAsync(user, Input.Password);
 
                 if (result.Succeeded)

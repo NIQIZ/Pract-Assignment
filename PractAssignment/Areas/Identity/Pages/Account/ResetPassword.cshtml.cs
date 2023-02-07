@@ -21,14 +21,16 @@ namespace PractAssignment.Areas.Identity.Pages.Account
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly PasswordService _passwordService;
+        private readonly AuditLogService _auditLogService;
 
         public ResetPasswordModel(
             UserManager<ApplicationUser> userManager,
-            PasswordService passwordService)
+            PasswordService passwordService,
+            AuditLogService auditLogService)
         {
             _userManager = userManager;
             _passwordService = passwordService;
-
+            _auditLogService = auditLogService;
         }
 
         [BindProperty]
@@ -108,6 +110,7 @@ namespace PractAssignment.Areas.Identity.Pages.Account
                 var updateResult = await _userManager.UpdateAsync(user);
                 if (updateResult.Succeeded)
                 {
+                    await _auditLogService.AddPasswordResetLog(user);
                     return RedirectToPage("./ResetPasswordConfirmation");
                 }
                 ModelState.AddModelError(string.Empty, "Reset Error. Please re-login and try again");

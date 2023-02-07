@@ -46,11 +46,13 @@ public class RegisterView
     [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
     public string? ConfirmPassword { get; set; }
         
-    /*[DataType(DataType.Upload)]
-    public IFormFile Photo { get; set; }*/
+    [Required(ErrorMessage = "Please select a file to upload.")]
+    public IFormFile? Photo { get; set; }
+
+    [FileExtensions(Extensions = "jpg", ErrorMessage = "Please select a file with the correct extension.")]
+    public string? FileName => Photo?.FileName;
 
     [DataType(DataType.MultilineText)]
-    [RegularExpression(@"^[a-zA-Z0-9-\s-#]+$", ErrorMessage = "Invalid About Me format")]
     public string? AboutMe { get; set; }
 
 

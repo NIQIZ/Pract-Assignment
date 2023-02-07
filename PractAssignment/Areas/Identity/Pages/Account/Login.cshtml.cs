@@ -30,19 +30,20 @@ namespace PractAssignment.Areas.Identity.Pages.Account
         private readonly ILogger<LoginModel> _logger;
         private readonly GoogleCaptchaService _googleCaptchaService;
         private readonly IEmailSender _emailSender;
-
+        private readonly AuditLogService _auditLogService;
         public LoginModel(SignInManager<ApplicationUser> signInManager, 
             UserManager<ApplicationUser> userManager, 
             ILogger<LoginModel> logger, 
             GoogleCaptchaService googleCaptchaService , 
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            AuditLogService auditLogService)
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _logger = logger;
             _googleCaptchaService = googleCaptchaService;
             _emailSender = emailSender;
-
+            _auditLogService = auditLogService;
         }
         [TempData]
         public string StatusMessage { get; set; }
@@ -131,6 +132,7 @@ namespace PractAssignment.Areas.Identity.Pages.Account
                     ClaimsPrincipal claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
 
                     await HttpContext.SignInAsync("MyCookieAuth", claimsPrincipal);
+                    await _auditLogService.AddLoginLog(existingUser);
                     return LocalRedirect(returnUrl);
                 }
                 if (result.RequiresTwoFactor)
@@ -139,11 +141,13 @@ namespace PractAssignment.Areas.Identity.Pages.Account
                 }
                 if (result.IsLockedOut)
                 {
+                    await _auditLogService.AddLockoutLog(existingUser);
                     _logger.LogWarning("User account locked out.");
                     return RedirectToPage("./Lockout");
                 }
                 else
                 {
+                    await _auditLogService.AddInvalidLoginAttemptLog(existingUser);
                     ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                     return Page();
                 }
